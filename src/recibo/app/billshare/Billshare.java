@@ -1,11 +1,12 @@
-package billshare;
+package recibo.app.billshare;
+
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import recibo.app.R;
+import recibo.app.billshare.R;
 import recibo.platform.ReciboContentProvider;
 import recibo.platform.model.Item;
 import recibo.platform.model.Receipt;
@@ -14,7 +15,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -23,7 +23,6 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
-import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemClickListener;
 
@@ -35,6 +34,8 @@ public class Billshare extends Activity{
 	private static final int MUST_ADD_USER_DIALOG = 2;
 	private static final int ALREADY_TAKEN_DIALOG = 3;
 	private static final int BILLSHARE_DUMMY_QUERY = 0;
+	
+	private static final DecimalFormat priceFormatter = new DecimalFormat("$#0.00");
 	
 	private ArrayList <User> users = new ArrayList<User>();
 	private User activeUser = null;
@@ -57,11 +58,10 @@ public class Billshare extends Activity{
 		private static final ArrayList<Integer> colors = new ArrayList<Integer>();
 		
 		static {
-			colors.add(Color.BLUE);
-			colors.add(Color.CYAN);
-			colors.add(Color.GREEN);
-			colors.add(Color.RED);
-			colors.add(Color.YELLOW);
+			colors.add(0xFFFFECEC);		//pink
+			colors.add(0xFFCBC5F5);		//purple
+			colors.add(0xFFDBF0F7);		//blue
+			colors.add(0xFFF5F7C4);		//yellow
 		}
 		 
 		private Integer getNewColor() {
@@ -78,6 +78,14 @@ public class Billshare extends Activity{
 			this.items.add(i);			
 		}
 		
+		public void removeItem(Item i){
+			this.items.remove(this.items.indexOf(i));			
+		}
+		
+		public boolean hasItem(Item i){
+			return items.contains(i);			
+		}
+		
 		public String getName(){
 			return this.name;
 		}
@@ -88,52 +96,13 @@ public class Billshare extends Activity{
     @Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
-    	
+    	setContentView(R.layout.billshare_receiptview);
+    	    	
     	Cursor rcp = ReciboContentProvider.dummyQuery(BILLSHARE_DUMMY_QUERY); 
         rcp.moveToPosition(0);
         activeReceipt = new Receipt(rcp);    	
     	
         
-        /*
-    	setContentView(R.layout.billshare_receiptview);
-        TableLayout table = (TableLayout) findViewById(R.id.tableLayout1);
-
-        Cursor rcp = ReciboContentProvider.dummyQuery(0); 
-        rcp.moveToPosition(0);
-        activeReceipt = new Receipt(rcp);
-               
-
-        //build table view using receipt items
-        for (int i = 0; i < activeReceipt.items.length; i++){	
-        	names.add(activeReceipt.items[i].name);
-        	prices.add(Double.toString(activeReceipt.items[i].price));
-        	TextView name = new TextView(this);
-        	//TextView name = (TextView) findViewById(R.id.name);
-        	name.setText(activeReceipt.items[i].name);
-        	TextView price = new TextView(this);
-        	//TextView price = (TextView) findViewById(R.id.price);
-        	price.setText(Double.toString(activeReceipt.items[i].price));
-        	TableRow tr = new TableRow(this);
-        	tr.setId(activeReceipt.items[i]._id);
-        	tr.addView(name);
-        	tr.addView(price);
-        	tr.setOnClickListener(this);
-        	//table.addView(tr);	
-        }
-        
-        
-        
-        
-        Button b = new Button(this);
-        b.setText("Add Person");
-        b.setOnClickListener(this);
-        
-        table.addView(b);
-        
-        */
-        
-        
-        setContentView(R.layout.billshare_receiptview);
         ListView lv = (ListView)findViewById(R.id.listview);
         String[] from = new String[] {"name", "price", "ID"};
         int[] to = new int[] { R.id.item_name, R.id.item_price, R.id.item_id};
@@ -143,7 +112,6 @@ public class Billshare extends Activity{
         	HashMap<String, String> map = new HashMap<String, String>();
         	
         	map.put("name", activeReceipt.items[i].name);
-        	DecimalFormat priceFormatter = new DecimalFormat("$#0.00");
         	map.put("price", priceFormatter.format(activeReceipt.items[i].price));
         	map.put("ID", Integer.toString(activeReceipt.items[i]._id));
         	fillMaps.add(map);
@@ -156,75 +124,90 @@ public class Billshare extends Activity{
         		
         
         final Button button = (Button) findViewById(R.id.add_user_button);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Perform action on click
-            }
-        });
-        
+        button.setOnClickListener(buttonClickListener);      
 
-        
+        //private JunctionMaker mJunctionMaker;
         
     }
 
-    private OnItemClickListener buttonClickListener = new OnItemClickListener(){
-    	public void onItemClick (AdapterView parent, View v, int position, long id){
-    		
-    	}
-    };
+    private View.OnClickListener buttonClickListener = new View.OnClickListener() {
+		
+    	 public void onClick(View v) {
+    		 showDialog(ADD_USER_DIALOG); //set the active user
+    		 for(int j=0; j < activeReceipt.items.length; j++){
+    			 Item i = activeReceipt.items[j];    			 
+    		 }
+         }
+    	 
+    	 
+     };
+    
+   
     private OnItemClickListener tableRowClickListener = new OnItemClickListener(){
     	public void onItemClick (AdapterView parent, View v, int position, long id){
-	    /*	if (v.getClass().getName() == android.widget.Button.class.getName())
-	    	{
-	    		showDialog(ADD_USER_DIALOG); //set the active user	
+
+    		if (activeUser == null) showDialog(MUST_ADD_USER_DIALOG); //insist on at least one user
+    		else
+    		{	
+
+    			TextView tv = (TextView)(((LinearLayout)v).findViewById(R.id.item_id));
+    			Item i = getItemByID(Integer.parseInt((tv).getText().toString()));
+    			View row = (View) tv.getParent();
+
+    			if (i != null)
+    			{
+    				//add to accounted for items map.
+    				if (!accountedItems.containsKey(i._id))
+    				{
+    					//add item
+    					activeUser.addItem(i);
+    					accountedItems.put(i._id, activeUser.getName());
+    					row.setBackgroundColor(activeUser.color);
+    					
+    					//check if everything is taken
+    					if (accountedItems.keySet().size() == activeReceipt.items.length)
+    					{
+    						//TODO: compute total
+    						//switch view and change totals by person
+    						//
+    						//gridlayout.addview(tableLayout1)
+    						//gridLayout.removeView(tableLayout1)
+    						//replace new view
+
+    					}
+    				}
+    				else
+    				{
+    					if (activeUser.hasItem(i)){
+    						activeUser.removeItem(i);
+    						accountedItems.remove(i._id);
+    						row.setBackgroundColor(0xfff3fbe9);
+    						
+    					}
+    					else
+    					{
+    						showDialog(ALREADY_TAKEN_DIALOG);
+    					}
+    				}
+    			}
+    			
+    			double total = 0;
+    			for (int j=0; j < activeUser.items.size(); j++)
+    			{
+    				total += activeUser.items.get(j).price;
+    			}
+    			TextView totalView = (TextView)findViewById(R.id.active_user_total);
+    			totalView.setText(activeUser.getName() + "'s total: " + priceFormatter.format(total));
+    		}
+    		/*
 	    	}
-	    
-    	
-	    	else if (v.getClass().getName() == R.id.listview.class.getName())//android.widget.TableRow.class.getName())
-	    	{
-	    		*/
-	    		if (activeUser == null) showDialog(MUST_ADD_USER_DIALOG); //insist on at least one user
-	    		else
-	    		{	
-	          		//Item i = getItemByID(((TableRow)v).getId());
-	    			Item i = getItemByID(Integer.parseInt(((TextView)(((LinearLayout)v).findViewById(R.id.item_id))).getText().toString()));
-	          		
-	          		if (i != null)
-	          		{
-	          		//add to accounted for items map.
-	          			if (!accountedItems.containsKey(i._id))
-	          			{
-	          				//add item
-	          				accountedItems.put(i._id, activeUser.getName());
-	          				((TableRow)v).setBackgroundColor(activeUser.color);
-	          				
-	          				//check if everything is taken
-	          				if (accountedItems.keySet().size() == activeReceipt.items.length)
-	          				{
-	          					//TODO: compute total
-	          					//switch view and change totals by person
-	          					//
-	          			        //gridlayout.addview(tableLayout1)
-	          			        //gridLayout.removeView(tableLayout1)
-	          			        //replace new view
-	
-	          				}
-	          			}
-	          			else
-	          			{
-	          				showDialog(ALREADY_TAKEN_DIALOG);
-	          			}
-	          		}      		
-	    		}
-	    		/*
-	    	}
-    
+
 	    	else
 	    	{
 	    		throw new RuntimeException("Unrecognized click.");
 	    	}
-*/	    	
-	    }
+    		 */	    	
+    	}
     };
     
     public Dialog onCreateDialog(int id, Bundle args) {
@@ -281,8 +264,10 @@ public class Billshare extends Activity{
 			  users.add(u);
 			  activeUser = u;
 			  
-			  TextView tv = (TextView)findViewById(R.id.textView3);
-			  tv.setText(activeUser.getName());
+			  TextView tv = (TextView)findViewById(R.id.active_user);
+			  tv.setText("claiming items for: " + activeUser.getName());
+			  tv = (TextView)findViewById(R.id.active_user_total);
+			  tv.setText(activeUser.getName() + "'s total: $0.00");
 			  }
 			});
 	
