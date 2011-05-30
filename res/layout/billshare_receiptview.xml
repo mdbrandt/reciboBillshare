@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:id="@+id/main"
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_height="fill_parent"
+	android:layout_width="fill_parent"
+	android:background="#fff3fbe9">
+	<!-- Header -->
+	<LinearLayout android:id="@+id/header"
+		android:layout_height="wrap_content"
+		android:layout_width="fill_parent"
+		>
+		
+		<TextView android:id="@+id/item_name"
+			android:textColor="#ff385e0f"
+			android:textSize="25px"
+			android:layout_height="fill_parent"
+			android:layout_width="wrap_content"
+			android:text="item name"
+			android:width="250dip"
+			android:height="30dip"
+			android:paddingLeft="5dip"
+			android:gravity="center_vertical"
+		/>
+		<TextView android:id="@+id/item_price"
+			android:textColor="#ff385e0f"
+			android:textSize="25px"
+			android:layout_height="fill_parent"
+			android:layout_width="wrap_content"
+			android:text="price"
+			android:width="100dip"
+			android:height="30dip"
+			android:paddingRight="5dip"
+			android:gravity="center_vertical|right"
+		/>
+		<TextView android:id="@+id/item_id"
+			android:visibility="gone"
+			android:layout_height="fill_parent"
+			android:layout_width="wrap_content"
+			android:text="ID"
+			android:width="100dip"
+			android:height="30dip"
+		/>
+	</LinearLayout>
+
+	<!-- List Divider -->
+	<View android:layout_width="fill_parent"
+		android:layout_height="1dip"
+		android:background="?android:attr/listDivider" />
+
+	<!-- ListView (grid_items) -->
+	<LinearLayout android:id="@+id/layout"
+		
+		android:layout_width="wrap_content"
+		android:layout_height="fill_parent">
+		<ListView android:id="@+id/listview"
+			android:layout_height="fill_parent"
+			android:layout_width="fill_parent">
+		</ListView>
+		
+	</LinearLayout>
+	
+	<Button android:text="Button" android:id="@+id/add_user_button" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
+	
+</LinearLayout>
